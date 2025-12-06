@@ -4,14 +4,14 @@ ARG BUILD_CONTEXT="build-context"
 ARG UID=worker
 ARG GID=worker
 # renovate: pypi: unoserver
-ARG VERSION_UNOSERVER=3.4
+ARG VERSION_UNOSERVER=3.6
 
 LABEL org.opencontainers.image.title="unoserver-docker"
 LABEL org.opencontainers.image.description="Container image that contains unoserver and libreoffice including large set of fonts for file format conversions"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.documentation="https://github.com/unoconv/unoserver-docker/blob/main/README.adoc"
-LABEL org.opencontainers.image.source="https://github.com/unoconv/unoserver-docker"
-LABEL org.opencontainers.image.url="https://github.com/unoconv/unoserver-docker"
+LABEL org.opencontainers.image.documentation="https://github.com/utek/unoserver-docker/blob/main/README.adoc"
+LABEL org.opencontainers.image.source="https://github.com/utek/unoserver-docker"
+LABEL org.opencontainers.image.url="https://github.com/utek/unoserver-docker"
 
 WORKDIR /
 
