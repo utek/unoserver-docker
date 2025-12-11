@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     fonts-noto \
     fonts-liberation \
     fonts-dejavu \
+    netcat-traditional \
     curl \
     tini \
     && rm -rf /var/lib/apt/lists/*
@@ -34,4 +35,4 @@ WORKDIR /home/worker
 
 EXPOSE 2003
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["unoserver", "--interface", "0.0.0.0", "--conversion-timeout", "10"]
+CMD ["unoserver", "--interface", "0.0.0.0", "--port", "2003" ,"--conversion-timeout", "10"]
