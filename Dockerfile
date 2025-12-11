@@ -1,61 +1,37 @@
-FROM eclipse-temurin:24.0.1_9-jdk-alpine-3.21
+FROM debian:bookworm-slim
 
-ARG BUILD_CONTEXT="build-context"
-ARG UID=worker
-ARG GID=worker
-# renovate: pypi: unoserver
-ARG VERSION_UNOSERVER=3.6
+ARG UID=1000
+ARG GID=1000
 
-LABEL org.opencontainers.image.title="unoserver-docker"
-LABEL org.opencontainers.image.description="Container image that contains unoserver and libreoffice including large set of fonts for file format conversions"
-LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.documentation="https://github.com/utek/unoserver-docker/blob/main/README.adoc"
-LABEL org.opencontainers.image.source="https://github.com/utek/unoserver-docker"
-LABEL org.opencontainers.image.url="https://github.com/utek/unoserver-docker"
+# Prevent interactive prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
 
-WORKDIR /
-
-RUN addgroup -S ${GID} && adduser -S ${UID} -G ${GID}
-
-RUN apk add --no-cache \
-    bash curl \
-    py3-pip \
+# Install LibreOffice, Python, UNO bindings, and Fonts
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-uno \
     libreoffice \
-    supervisor
+    default-jre \
+    fonts-noto \
+    fonts-liberation \
+    fonts-dejavu \
+    curl \
+    tini \
+    && rm -rf /var/lib/apt/lists/*
 
-# fonts - https://wiki.alpinelinux.org/wiki/Fonts
-RUN apk add --no-cache \
-    font-noto font-noto-cjk font-noto-extra \
-    terminus-font \
-    ttf-font-awesome \
-    ttf-dejavu \
-    ttf-freefont \
-    ttf-hack \
-    ttf-inconsolata \
-    ttf-liberation \
-    ttf-mononoki  \
-    ttf-opensans   \
-    fontconfig && \
-    fc-cache -f
+# Install Unoserver
+# We use --break-system-packages because we MUST install into the system python
+# environment to access the 'uno' library installed by apt.
+RUN pip3 install --break-system-packages unoserver
 
-RUN rm -rf /var/cache/apk/* /tmp/*
+# Create user
+RUN groupadd -g "${GID}" worker && \
+    useradd --create-home --no-log-init -u "${UID}" -g "${GID}" worker
 
-# https://github.com/unoconv/unoserver/
-RUN pip install --break-system-packages -U unoserver==${VERSION_UNOSERVER}
-
-# setup supervisor
-COPY --chown=${UID}:${GID} ${BUILD_CONTEXT} /
-RUN chmod +x entrypoint.sh && \
-    #    mkdir -p /var/log/supervisor && \
-    #    chown ${UID}:${GID} /var/log/supervisor && \
-    #    mkdir -p /var/run && \
-    chown -R ${UID}:0 /run && \
-    chmod -R g=u /run
-
-USER ${UID}
+USER worker
 WORKDIR /home/worker
-ENV HOME="/home/worker"
 
-VOLUME ["/data"]
 EXPOSE 2003
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["unoserver", "--interface", "0.0.0.0", "--conversion-timeout", "10"]
