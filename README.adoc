@@ -6,48 +6,40 @@ Container image for unoserver
 
 == The environment
 
-This Container image uses Alpine Linux as a base image and provides:
+This Container image uses Debian (`trixie-slim`) as a base image and provides:
 
-* link:https://www.libreoffice.org/[LibreOffice]
+* link:https://www.libreoffice.org/[LibreOffice] (Writer, Calc, Impress and Draw)
 * link:https://github.com/unoconv/unoserver[unoserver]
 
-* Fonts (Alpine packages)
-  - font-noto
-  - font-noto-cjk
-  - font-noto-extra
-  - terminus-font
-  - ttf-font-awesome
-  - ttf-dejavu
-  - ttf-freefont
-  - ttf-hack
-  - ttf-inconsolata
-  - ttf-liberation
-  - ttf-mononoki 
-  - ttf-opensans  
+* Fonts (Debian packages)
+  - fonts-noto
+  - fonts-noto-cjk
+  - fonts-liberation
+  - fonts-crosextra-carlito (metric-compatible with Calibri)
+  - fonts-crosextra-caladea (metric-compatible with Cambria)
+  - fonts-dejavu
 
 == How to use it
 
 NOTE: The `docker` can normally be replaced with `podman` as well.
 
-=== In interactive mode
+NOTE: When LibreOffice dies, the container exits with status 0, so `--restart on-failure` will not restart it. Use `--restart unless-stopped` (or `always`). The image also has a `HEALTHCHECK` that runs `unoping`.
 
-Just run:
+=== With a local directory
 
-[source,bash]
-----
-docker run -it -v <your directory>:/data/ ghcr.io/unoconv/unoserver-docker
-----
-
-After you start the container, you can use link:https://github.com/unoconv/unoserver#unoconvert[unoconvert] command to convert documents using LibreOffice.
-
-or to convert directly using unoconvert:
+Start the server with your directory mounted at `/data`:
 
 [source,bash]
 ----
-docker run -it -v <your directory>:/data/ ghcr.io/unoconv/unoserver-docker unoconvert /data/document.docx /data/document.pdf
+docker run -d --name unoserver --restart unless-stopped -v <your directory>:/data/ ghcr.io/unoconv/unoserver-docker
 ----
 
-Docker maps your directory with /data directory in the container.
+Then convert documents with the link:https://github.com/unoconv/unoserver#unoconvert[unoconvert] command inside the running container:
+
+[source,bash]
+----
+docker exec unoserver unoconvert /data/document.docx /data/document.pdf
+----
 
 You might need to add the option `:z` or `:Z` like `<your directory>:/data/:z` or `<your directory>:/data/:Z` if you are using SELinux. See link:https://docs.docker.com/storage/bind-mounts/#configure-the-selinux-label[Docker docs] or link:https://docs.podman.io/en/latest/markdown/podman-run.1.html#volume-v-source-volume-host-dir-container-dir-options[Podman docs].
 
@@ -56,7 +48,7 @@ You might need to add the option `:z` or `:Z` like `<your directory>:/data/:z` o
 
 [source,bash]
 ----
-docker run -p 2003:2003 ghcr.io/unoconv/unoserver-docker
+docker run -d --restart unless-stopped -p 2003:2003 ghcr.io/unoconv/unoserver-docker
 ----
 
 After you start the container, you can use link:https://github.com/unoconv/unoserver#unoconvert[unoconvert] command to convert documents using LibreOffice.
