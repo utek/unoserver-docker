@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-uno \
     libreoffice-writer-nogui \
+    libreoffice-uiconfig-writer \
     libreoffice-calc-nogui \
     libreoffice-impress-nogui \
     libreoffice-draw-nogui \
